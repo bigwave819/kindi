@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { signIn, signUp } from "@/lib/auth-client";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 
 // -------------------------
@@ -25,6 +25,8 @@ const signupSchema = z.object({
 type SignupFormProps = z.infer<typeof signupSchema>;
 
 function SignupForm() {
+
+  const router = useRouter()
   const [loading, setLoading] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignupFormProps>({
@@ -42,10 +44,10 @@ function SignupForm() {
 
       if (res.error) {
         alert(res.error.message);
-      } else {
+        return;
+      } 
         alert("Signup successful!");
-        redirect("/");
-      }
+        router.push("/");
     } catch (error) {
       console.error(error);
       alert("Signup failed");

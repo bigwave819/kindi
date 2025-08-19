@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { signIn } from "@/lib/auth-client";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 
 const loginSchema = z.object({
@@ -19,6 +19,7 @@ type LoginFormProps = z.infer<typeof loginSchema>
 function LoginForm() {
 
     const [loading, setLoading] = useState(false)
+    const router = useRouter()
 
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormProps>({
         resolver: zodResolver(loginSchema)
@@ -33,11 +34,11 @@ function LoginForm() {
             })
 
             if (res.error) {
-                alert(res.error.message);
-            } else {
-                alert("login successfully")
-                redirect("/")
+                alert("Login failed: " + res.error.message);
+                return;   // ⬅️ stop here if failed
             }
+            alert("login successfully")
+            router.push("/")
         } catch (error) {
             console.error(error);
             alert("login failed")

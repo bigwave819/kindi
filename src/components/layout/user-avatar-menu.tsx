@@ -8,12 +8,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react"; 
 import { User } from "better-auth";
 import { signOut } from "@/lib/auth-client";
 
 interface UserMenuProps {
-    user?: User | null; // ✅ Made optional
+    user?: User | null; 
 }
 
 export default function UserAvatarMenu({ user }: UserMenuProps) { 

@@ -1,6 +1,6 @@
 // src/lib/db/schema.ts
-import { pgTable, text, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, boolean, serial } from "drizzle-orm/pg-core";
+
 
 
 export const user = pgTable("user", {
@@ -68,4 +68,10 @@ export const verification = pgTable("verification", {
   ),
 });
 
-
+export const category = pgTable("category", {
+  id: serial("id").primaryKey(),
+  icon: text("icon").notNull(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

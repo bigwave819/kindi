@@ -24,6 +24,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.4",
+    "emoji-picker-react": "^4.13.2",
     "lucide-react": "^0.540.0",
     "next": "15.4.7",
     "pg": "^8.16.3",

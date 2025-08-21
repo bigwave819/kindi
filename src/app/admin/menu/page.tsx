@@ -2,7 +2,9 @@
 
 function MenuPage() {
     return ( 
-        <div>MenuPage</div>
+        <div>
+            
+        </div>
      );
 }
 

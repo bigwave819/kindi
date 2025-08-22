@@ -1,3 +1,6 @@
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DeleteIcon } from "lucide-react";
+
 // components/admin/category/category-list.tsx
 type CategoryType = {
     id: number;
@@ -12,13 +15,25 @@ interface CategoryListProps {
 
 export default function CategoryList({ categories }: CategoryListProps) {
     return (
-        <div className="space-y-2">
-            {categories.map((category) => (
-                <div key={category.id} className="flex items-center gap-3 p-3 border rounded-md">
-                    <span className="text-2xl">{category.icon}</span>
-                    <span className="font-medium">{category.name}</span>
-                </div>
-            ))}
-        </div>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Icon</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Action</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {
+                    categories.map((c) => 
+                        <TableRow key={c.id}>
+                            <TableCell>{c.icon}</TableCell>
+                            <TableCell>{c.name}</TableCell>
+                            <TableCell><span><DeleteIcon /></span> Delete </TableCell>
+                        </TableRow>
+                    )
+                }
+            </TableBody>
+        </Table>
     );
 }

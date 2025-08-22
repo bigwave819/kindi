@@ -37,7 +37,7 @@ export function AdminSidebar() {
   };
 
   return (
-    <div className="w-64 min-w-64 border-r bg-background h-screen flex flex-col">
+    <div className="fixed top-0 left-0 w-64 min-w-64 border-r bg-background h-screen flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b">
         <Link href="/admin" className="text-2xl font-bold tracking-wide">

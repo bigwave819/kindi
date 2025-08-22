@@ -8,6 +8,20 @@
       "when": 1755801767305,
       "tag": "0000_lazy_miek",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1755861896273,
+      "tag": "0001_cynical_shatterstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1755861981505,
+      "tag": "0002_amused_firestar",
+      "breakpoints": true
     }
   ]
 }

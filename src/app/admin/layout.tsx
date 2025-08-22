@@ -22,9 +22,9 @@ export default async function AdminDashboardLayout({
   }
 
   return (
-      <div className="flex min-h-screen">
+      <div className="flex">
         <AdminSidebar />
-        <main className="flex-1 p-6 bg-[#fdfdfc] min-w-0 justify-end overflow-auto">
+        <main className="ml-64 flex-1 p-6 bg-[#fdfdfc] min-w-0 justify-end overflow-auto">
           {children}
         </main>
       </div>

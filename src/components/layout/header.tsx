@@ -19,7 +19,7 @@ export default function Header() {
 
   if (isPending) {
     return (
-      <header className="bg-[#3e2723] text-white sticky top-0 z-50">
+      <header className="bg-[#3e2723] text-white fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto flex items-center justify-between p-4">
           <Link href="/" className="text-2xl font-bold tracking-wide">
             Kindi<span className="text-[#ffe0b2]">Coffee</span>
@@ -31,7 +31,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-[#3e2723] text-white sticky top-0 z-50">
+    <header className="bg-[#3e2723] text-white fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto flex items-center justify-between p-4">
         {/* Logo - Left side */}
         <div className="flex-1">
@@ -65,7 +65,7 @@ export default function Header() {
 
       {/* Mobile Nav */}
       {isOpen && (
-        <div className="md:hidden bg-[#4e342e] p-4 space-y-4">
+        <div className="md:hidden bg-[#4e342e] p-4 space-y-4 fixed top-16 left-0 right-0 z-50">
           <NavLinks onClick={() => setIsOpen(false)} />
           <UserAvatarMenu user={session?.user} />
         </div>

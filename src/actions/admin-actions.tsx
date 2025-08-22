@@ -1,12 +1,13 @@
 'use server'
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { category, user } from "@/lib/db/schema";
+import { category, menu, user } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { z } from "zod";
+import { title } from "process";
+import { success, z } from "zod";
 
 
 const categorySchema = z.object({
@@ -20,6 +21,14 @@ const categorySchema = z.object({
         .max(50, "Category name is too long")
 })
 
+const menuSchema = z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    price: z.number().positive('the number should be greater than zero'),
+    categoryId: z.number().positive('Please select a category'),
+    fileUrl: z.string().url('invalid Url'),
+    thumbnailUrl: z.string().url('Invalid File Url').optional()
+})
 export type categoryFormValues = z.infer<typeof categorySchema>
 
 export async function getAllUsersAction() {
@@ -89,8 +98,6 @@ export async function createCategoryAction(formData: FormData) {
     }
 }
 
-
-// Add this function to get categories
 export async function getAllCategoriesAction() {
     try {
         const session = await auth.api.getSession({
@@ -105,5 +112,48 @@ export async function getAllCategoriesAction() {
     } catch (error) {
         console.error(error);
         return [];
+    }
+}
+
+export async function createMenuAction(formData: FormData) {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+
+        if (!session?.user || session.user.role !== 'admin') {
+            redirect("/")
+        }
+
+        const validatedFields = menuSchema.parse({
+            title: formData.get('title'),
+            description: formData.get('description'),
+            price: Number(formData.get('price')),
+            categoryId: Number(formData.get('categoryId')),
+            fileUrl: formData.get('fileUrl'),
+            thumbnailUrl: formData.get('thumbnailUrl') || formData.get('fileUrl'),
+        })
+
+        await db.insert(menu).values({
+            title: validatedFields.title,
+            description: validatedFields.description,
+            price: validatedFields.price,
+            categoryId: validatedFields.categoryId,
+            fileUrl: validatedFields.fileUrl,
+            thumbnailUrl: validatedFields.thumbnailUrl
+        })
+
+        revalidatePath('/admin/menu')
+
+        return {
+            success: true,
+            message: 'successfully add the menu'
+        }
+    } catch (error) {
+        console.log(error);
+        return {
+            success: false,
+            message: 'faild to store the user assets'
+        }
     }
 }

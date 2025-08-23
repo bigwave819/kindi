@@ -1,13 +1,24 @@
+import { getAllCategoriesAction, getMenuAction } from "@/actions/admin-actions";
 import MenuUpload from "@/components/admin/menu/create-menu";
+import MenuGrid from "@/components/admin/menu/menu-grid";
 
 
-function MenuPage() {
+async function MenuPage() {
+
+    const [categories, menu] = await Promise.all([
+        getAllCategoriesAction(),
+        getMenuAction()
+    ])
     return ( 
-        <div className="w-full flex min-h-[80vh] justify-center px-20 py-5">
-            <div className="flex justify-between w-full">
-                <h1>All Menu</h1>
-                <MenuUpload />
+        <div className="container py-6">
+            <div className="flex justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold">All Menu</h1>
+                    <p className="text-muted-foreground">Here is All Your Menu You Have Uploaded</p>
+                </div>
+                <MenuUpload categories={categories} />
             </div>
+            <MenuGrid menu={ menu || []} />
         </div>
      );
 }

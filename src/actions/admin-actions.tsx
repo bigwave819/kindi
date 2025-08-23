@@ -6,8 +6,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { title } from "process";
-import { success, z } from "zod";
+import { z } from "zod";
 
 
 const categorySchema = z.object({
@@ -155,5 +154,37 @@ export async function createMenuAction(formData: FormData) {
             success: false,
             message: 'faild to store the user assets'
         }
+    }
+}
+
+export async function getMenuAction() {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+
+        if (!session?.user || session.user.role !== 'admin') {
+            redirect("/")
+        }
+        const menuItems = await db
+      .select({
+        id: menu.id,
+        title: menu.title,
+        description: menu.description,
+        price: menu.price,
+        fileUrl: menu.fileUrl,
+        thumbnailUrl: menu.thumbnailUrl,
+        categoryId: menu.categoryId,
+        categoryName: category.name, // <-- get the category name
+        createdAt: menu.createdAt,
+        updatedAt: menu.updatedAt,
+      })
+      .from(menu)
+      .leftJoin(category, eq(category.id, menu.categoryId))
+      .orderBy(menu.createdAt);
+
+    return menuItems;
+    } catch (error) {
+        return []
     }
 }

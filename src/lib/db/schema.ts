@@ -91,3 +91,19 @@ export const menu = pgTable("menu", {
     .$defaultFn(() => new Date())
     .notNull()
 })
+
+export const staff = pgTable("staff", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  phone: integer("phone").notNull(),
+  post: text("post").notNull(),
+  gender: text('gender').notNull(),
+  salary: integer("salary").notNull(),
+  fileUrl: text('fileUrl').notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => new Date())
+    .notNull(),
+  updatedAt: timestamp('updated_at')
+    .$defaultFn(() => new Date())
+    .notNull(),
+})

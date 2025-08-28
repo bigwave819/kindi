@@ -5,6 +5,9 @@ import { useState } from "react";
 import EmojiPicker from "./imojiPicker";
 import { EmojiClickData } from "emoji-picker-react";
 import { createCategoryAction } from "@/actions/admin-actions";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 type CategoryType = {
     id: number;
@@ -24,6 +27,7 @@ function CategoryAddForm({ categories: initialCategories }: CategoryManagerProps
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [ open, setOpen ] = useState(false)
 
     const handleEmojiSelect = (emojiData: EmojiClickData) => {
         setSelectedEmoji(emojiData.emoji);
@@ -58,7 +62,7 @@ function CategoryAddForm({ categories: initialCategories }: CategoryManagerProps
                 setSuccess(result.message);
                 setNewCategoryName('');
                 setSelectedEmoji('📁');
-                
+
                 // Refresh the categories list
                 if (result.category) {
                     setCategories([...categories, result.category as CategoryType]);
@@ -75,51 +79,64 @@ function CategoryAddForm({ categories: initialCategories }: CategoryManagerProps
     };
 
     return (
-        <div className="space-y-4">
-            <form onSubmit={handleAddNewCategory} className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium mb-2">Category Name</label>
-                    <input
-                        type="text"
-                        value={newCategoryName}
-                        onChange={(e) => {
-                            setNewCategoryName(e.target.value);
-                            setError(null);
-                        }}
-                        placeholder="Enter category name"
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        disabled={isLoading}
-                    />
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button className="bg-[#6F4E37] hover:bg-[#4b3423] text-white cursor-pointer">
+                    <Plus className="mr-3 w- h-4" />
+                    Upload the assets
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="p-5 min-h-screen mt-5 mb-4">
+                <DialogHeader>
+                    Add the Categoy
+                </DialogHeader>
+                <div className="space-y-4">
+                    <form onSubmit={handleAddNewCategory} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Category Name</label>
+                            <input
+                                type="text"
+                                value={newCategoryName}
+                                onChange={(e) => {
+                                    setNewCategoryName(e.target.value);
+                                    setError(null);
+                                }}
+                                placeholder="Enter category name"
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={isLoading}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Select Emoji</label>
+                            <div className="mb-2 text-2xl">{selectedEmoji}</div>
+                            <EmojiPicker onEmojiClick={handleEmojiSelect} />
+                        </div>
+
+                        {error && (
+                            <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-md">
+                                {error}
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="p-3 bg-green-100 border border-green-300 text-green-700 rounded-md">
+                                {success}
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={isLoading || !newCategoryName.trim() || !selectedEmoji}
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? 'Adding...' : 'Add Category'}
+                        </button>
+                    </form>
                 </div>
-
-                <div>
-                    <label className="block text-sm font-medium mb-2">Select Emoji</label>
-                    <div className="mb-2 text-2xl">{selectedEmoji}</div>
-                    <EmojiPicker onEmojiClick={handleEmojiSelect} />
-                </div>
-
-                {error && (
-                    <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-md">
-                        {error}
-                    </div>
-                )}
-
-                {success && (
-                    <div className="p-3 bg-green-100 border border-green-300 text-green-700 rounded-md">
-                        {success}
-                    </div>
-                )}
-
-                <button
-                    type="submit"
-                    disabled={isLoading || !newCategoryName.trim() || !selectedEmoji}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {isLoading ? 'Adding...' : 'Add Category'}
-                </button>
-            </form>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }
 

@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DeleteIcon } from "lucide-react";
+import { Trash2  } from "lucide-react";
 
 // components/admin/category/category-list.tsx
 type CategoryType = {
@@ -29,7 +29,7 @@ export default function CategoryList({ categories }: CategoryListProps) {
                         <TableRow key={c.id}>
                             <TableCell>{c.icon}</TableCell>
                             <TableCell>{c.name}</TableCell>
-                            <TableCell><span><DeleteIcon /></span> Delete </TableCell>
+                            <TableCell className="inline-flex space-x-4"><span><Trash2 className="text-red-700" /></span> </TableCell>
                         </TableRow>
                     )
                 }

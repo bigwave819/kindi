@@ -1,7 +1,7 @@
 'use server'
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { category, menu, user } from "@/lib/db/schema";
+import { category, menu, staff, user } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -28,6 +28,16 @@ const menuSchema = z.object({
     fileUrl: z.string().url('invalid Url'),
     thumbnailUrl: z.string().url('Invalid File Url').optional()
 })
+
+const staffSchema = z.object({
+    name: z.string().min(2, "Name is required"),
+    phone: z.string().regex(/^\d+$/, "Phone must be numbers only"),
+    post: z.string().min(2, "Post is required"),
+    gender: z.string().min(2, "Post is required"),
+    salary: z.string().regex(/^\d+$/, "Salary must be a number"),
+    fileUrl: z.string().url('invalid Url'),
+})
+
 export type categoryFormValues = z.infer<typeof categorySchema>
 
 export async function getAllUsersAction() {
@@ -167,23 +177,101 @@ export async function getMenuAction() {
             redirect("/")
         }
         const menuItems = await db
-      .select({
-        id: menu.id,
-        title: menu.title,
-        description: menu.description,
-        price: menu.price,
-        fileUrl: menu.fileUrl,
-        thumbnailUrl: menu.thumbnailUrl,
-        categoryId: menu.categoryId,
-        categoryName: category.name, // <-- get the category name
-        createdAt: menu.createdAt,
-        updatedAt: menu.updatedAt,
-      })
-      .from(menu)
-      .leftJoin(category, eq(category.id, menu.categoryId))
-      .orderBy(menu.createdAt);
+            .select({
+                id: menu.id,
+                title: menu.title,
+                description: menu.description,
+                price: menu.price,
+                fileUrl: menu.fileUrl,
+                thumbnailUrl: menu.thumbnailUrl,
+                categoryId: menu.categoryId,
+                categoryName: category.name, // <-- get the category name
+                createdAt: menu.createdAt,
+                updatedAt: menu.updatedAt,
+            })
+            .from(menu)
+            .leftJoin(category, eq(category.id, menu.categoryId))
+            .orderBy(menu.createdAt);
 
-    return menuItems;
+        return menuItems;
+    } catch (error) {
+        return []
+    }
+}
+
+export async function createStaffAction(formData: FormData) {
+    try {
+        // 1. Ensure only admin can create staff
+        const session = await auth.api.getSession({
+            headers: await headers(),
+        })
+
+        if (!session?.user || session.user.role !== "admin") {
+            redirect("/")
+        }
+
+        const file = formData.get("fileUrl") as File | null;
+
+        if (!file) throw new Error("Please select a file");
+
+        const validatedFields = staffSchema.parse({
+            name: formData.get("name"),
+            phone: formData.get("phone"),
+            post: formData.get("post"),
+            gender: formData.get("gender"),
+            salary: formData.get("salary"),
+            fileUrl: formData.get('fileUrl')
+        });
+
+        // 3. Insert into DB
+        await db.insert(staff).values({
+            name: validatedFields.name,
+            phone: Number(validatedFields.phone),
+            post: validatedFields.post,
+            gender: validatedFields.gender,
+            salary: Number(validatedFields.salary),
+            fileUrl: validatedFields.fileUrl,
+        })
+
+        // 4. Refresh admin staff page
+        revalidatePath("/admin/staff")
+
+        return {
+            success: true,
+            message: "Staff successfully added ✅",
+        }
+    } catch (error) {
+        console.error(error)
+
+        return {
+            success: false,
+            message: "failed to add the staff data"
+        }
+    }
+}
+
+export async function getStaffAction() {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+
+        if (!session?.user || session.user.role !== 'admin') {
+            redirect("/")
+        }
+        const menuItems = await db
+            .select({
+                id: staff.id,
+                name: staff.name,
+                phone: staff.phone,
+                post: staff.post,
+                gender: staff.gender,
+                salary: staff.salary,
+                fileUrl: staff.fileUrl,// <-- get the category name
+            })
+            .from(staff)
+
+        return menuItems;
     } catch (error) {
         return []
     }

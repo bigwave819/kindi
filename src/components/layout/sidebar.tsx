@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Coffee,
@@ -27,10 +27,12 @@ const links = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const route = useRouter()
 
   const handleSignOut = async () => {
     try {
       await signOut();
+      route.push("/")
     } catch (error) {
       console.error("Failed to sign out:", error);
     }

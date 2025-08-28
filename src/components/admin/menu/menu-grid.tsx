@@ -45,10 +45,11 @@ function MenuGrid({ menu }: MenuProps) {
               />
             </div>
             <div className="p-4">
-              <h3 className="font-medium truncate">{m.title}</h3>
+              <h3 className="font-semibold truncate text-lg">{m.title}</h3>
               {m.description && (
                 <p className="text-xs text-slate-500 line-clamp-2">{m.description}</p>
               )}
+              <h1 className="text-[#6F4E37] text-2xl font-bold">{m.price} Frw</h1>
               <div className="flex justify-between items-center mt-3 text-xs text-slate-400">
                 <span>
                   {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true })}

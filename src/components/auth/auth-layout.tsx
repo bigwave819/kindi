@@ -8,7 +8,7 @@ import RegisterForm from "./register-form";
 function AuthLayout() {
     const [active, setActive] = useState('login')
     return (
-        <div className="items-center justify-center flex min-h-[80vh]">
+        <div className="items-center justify-center flex min-h-[100vh] mt-16">
             <div className="w-full max-w-md p-5 bg-card rounded-lg shadow-sm border">
                 <h1 className="text-2xl font-bold text-center mb-6">Welcome to Kindi!</h1>
                 <Tabs defaultValue={active} onValueChange={setActive} className="w-full">

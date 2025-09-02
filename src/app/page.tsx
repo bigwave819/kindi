@@ -32,12 +32,24 @@ export default function Home() {
     },
   ];
 
-  const [menu, setMenu] = useState<MenuItem[]>([]);
+   const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchMenu() {
-      const data = await getMenuAction();
-      setMenu(data);
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getMenuAction();
+        console.log("Fetched menu data:", data); // Debug log
+        setMenu(data);
+      } catch (err) {
+        console.error("Error in fetchMenu:", err);
+        setError("Failed to load menu. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     }
     fetchMenu();
   }, []);
@@ -108,35 +120,66 @@ export default function Home() {
           Our Menu
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {menu.slice(0, 6).map((item) => (
-            <div
-              key={item.id}
-              className="border rounded-2xl p-4 shadow hover:shadow-lg transition text-center"
-            >
-              <div className="relative w-full h-48 mb-4">
-                <Image
-                  src={item.fileUrl}
-                  alt={item.title}
-                  fill
-                  className="object-cover rounded-xl"
-                  unoptimized
-                />
-              </div>
-              <h3 className="font-semibold text-xl mb-2">{item.title}</h3>
-              <p className="text-gray-600 mb-2">{item.description}</p>
-              <p className="font-bold text-[#6F4E37]">RWF {item.price}</p>
-            </div>
-          ))}
-        </div>
+        {loading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6F4E37] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading menu...</p>
+          </div>
+        )}
 
-        <div className="text-center mt-10">
-          <Link href="/user/menu">
-            <button className="px-8 py-3 rounded-full bg-[#6F4E37] text-white hover:bg-[#5a3f2c] font-semibold transition shadow-md">
-              View More
+        {error && (
+          <div className="text-center py-12 text-red-600">
+            <p>{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-6 py-2 bg-[#6F4E37] text-white rounded-md hover:bg-[#5a3f2c]"
+            >
+              Try Again
             </button>
-          </Link>
-        </div>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+              {menu.length > 0 ? (
+                menu.slice(0, 6).map((item) => (
+                  <div
+                    key={item.id}
+                    className="border rounded-2xl p-4 shadow hover:shadow-lg transition text-center"
+                  >
+                    <div className="relative w-full h-48 mb-4">
+                      <Image
+                        src={item.fileUrl || "/placeholder-coffee.jpg"}
+                        alt={item.title}
+                        fill
+                        className="object-cover rounded-xl"
+                        unoptimized
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder-coffee.jpg";
+                        }}
+                      />
+                    </div>
+                    <h3 className="font-semibold text-xl mb-2">{item.title}</h3>
+                    <p className="text-gray-600 mb-2 line-clamp-2">
+                      {item.description}
+                    </p>
+                    <p className="font-bold text-[#6F4E37]">RWF {item.price}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-gray-600 text-lg">
+                    No menu items available yet.
+                  </p>
+                  <p className="text-gray-500 mt-2">
+                    Check back soon for our delicious offerings!
+                  </p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </section>
     </div>
   );

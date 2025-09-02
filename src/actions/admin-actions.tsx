@@ -169,13 +169,6 @@ export async function createMenuAction(formData: FormData) {
 
 export async function getMenuAction() {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers()
-        });
-
-        if (!session?.user || session.user.role !== 'admin') {
-            redirect("/")
-        }
         const menuItems = await db
             .select({
                 id: menu.id,

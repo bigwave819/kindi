@@ -2,18 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, ShoppingCart, X } from "lucide-react";
 import NavLinks from "./nav-links";
 import UserAvatarMenu from "./user-avatar-menu";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { useCartStore } from "@/store/cartStore";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session, isPending } = useSession();
   const pathname = usePathname();
 
-   if (pathname.startsWith("/admin") || pathname === "/not-found") {
+  const items = useCartStore((state) => state.items);
+  const totalCount = items.reduce((sum, i) => sum + i.quantity, 0);
+
+  if (pathname.startsWith("/admin") || pathname === "/not-found") {
     return null;
   }
 
@@ -48,7 +52,22 @@ export default function Header() {
         {/* Right side - User avatar and mobile toggle */}
         <div className="flex-1 flex justify-end items-center gap-4">
           {/* User Avatar - Desktop */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-6">
+            {/* Cart Link */}
+            <Link
+              href="/user/cart"
+              className="relative flex items-center text-gray-700 hover:text-green-600 transition-colors"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {/* Badge for number of items */}
+              {totalCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  {totalCount}
+                </span>
+              )}
+            </Link>
+
+            {/* User Menu */}
             <UserAvatarMenu user={session?.user} />
           </div>
 

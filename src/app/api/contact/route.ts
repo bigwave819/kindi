@@ -95,16 +95,15 @@ export async function POST(request: NextRequest) {
         </body>
         </html>
       `,
-      text: `
-New Contact Form Submission
+      text: `New Contact Form Submission
 
-Name: ${name}
-Email: ${email}
-Message:
-${message}
+              Name: ${name}
+              Email: ${email}
+              Message:
+              ${message}
 
----
-This message was sent from the contact form on your Kindi Chocolate website.
+              ---
+              This message was sent from the contact form on your Kindi Chocolate website.
       `,
     });
 

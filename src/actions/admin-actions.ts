@@ -1,8 +1,8 @@
 'use server'
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { category, menu, staff, user } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { category, menu, orders, staff, user } from "@/lib/db/schema";
+import { eq, gte, sql, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -268,4 +268,51 @@ export async function getStaffAction() {
     } catch (error) {
         return []
     }
+}
+
+export async function getTopSoldMenuItems() {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    })
+
+    if (!session?.user || session.user.role !== "admin") {
+        redirect("/")
+    }
+
+    try {
+        const result = await db
+            .select({
+                title: menu.title,
+                image: menu.fileUrl,
+                totalSold: sql<number>`SUM(${orders.quantity})`
+            })
+            .from(orders)
+            .leftJoin(menu, eq(orders.menuId, menu.id))
+            .where(and(gte(orders.createdAt, startOfMonth), eq(orders.status, "COMPLETED")))
+            .groupBy(menu.title, menu.fileUrl)
+            .orderBy(desc(sql`SUM(${orders.quantity})`))
+            .limit(5);
+
+        return result
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+export async function getActiveCustomers() {
+  const now = new Date();
+  const last30Days = new Date(now.setDate(now.getDate() - 30));
+
+  const result = await db
+    .select({
+      totalActiveCustomers: sql<number>`COUNT(DISTINCT ${orders.userId})`,
+    })
+    .from(orders)
+    .where(gte(orders.createdAt, last30Days));
+
+  return result[0]?.totalActiveCustomers || 0;
 }

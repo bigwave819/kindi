@@ -1,5 +1,6 @@
 // src/lib/db/schema.ts
 import { pgTable, text, timestamp, boolean, serial, uuid, integer } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
 
 
 
@@ -107,3 +108,24 @@ export const staff = pgTable("staff", {
     .$defaultFn(() => new Date())
     .notNull(),
 })
+
+export const orders = pgTable('orders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: text('user_id')
+    .references(() => user.id, { onDelete: 'cascade' })
+    .notNull(),
+  menuId: uuid('id')
+    .references(() => menu.id , { onDelete: 'cascade' })
+    .notNull(),
+  quantity: integer('quantity').notNull(),
+  price: integer("price").notNull(),
+  total: integer("total").generatedAlwaysAs(sql`quantity * price`),
+  status: text('status').default('PENDING').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+})
+
+export const ordersRelations = relations(orders, ({ one }) => ({
+  user: one(user, { fields: [orders.userId], references: [user.id]}),
+  menu: one(menu, { fields: [orders.menuId], references: [menu.id] })
+}))

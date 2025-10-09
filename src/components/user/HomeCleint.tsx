@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { getMenuAction } from "@/actions/admin-actions";
 import Image from "next/image";
+import Link from "next/link";
+import { ShoppingBag } from "lucide-react";
+
 
 type MenuItem = {
   id: string;
@@ -50,6 +53,37 @@ export default function HomeClient({ session }: { session: any }) {
     }
     fetchMenu();
   }, []);
+
+  if (!menu?.length)
+    return (
+      <div className="text-center py-20 text-gray-600">
+        <p className="text-lg">No menu items available yet.</p>
+        <p className="text-gray-500 mt-2">
+          Check back soon for our delicious offerings!
+        </p>
+      </div>
+    );
+
+  if (loading)
+    return (
+      <div className="text-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6F4E37] mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading menu...</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="text-center py-20 text-red-600">
+        <p>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-6 py-2 bg-[#6F4E37] text-white rounded-md hover:bg-[#5a3f2c] transition"
+        >
+          Try Again
+        </button>
+      </div>
+    );
 
   return (
     <div>
@@ -116,65 +150,46 @@ export default function HomeClient({ session }: { session: any }) {
           Our Menu
         </h2>
 
-        {loading && (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6F4E37] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading menu...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="text-center py-12 text-red-600">
-            <p>{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-6 py-2 bg-[#6F4E37] text-white rounded-md hover:bg-[#5a3f2c]"
+        <div className="grid gap-16 sm:grid-cols-2 md:grid-cols-3">
+          {menu.slice(0, 6).map((item: any) => (
+            <div
+              key={item.id}
+              className="rounded-2xl border shadow-md hover:shadow-xl transition bg-white"
             >
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {menu.length > 0 ? (
-              menu.slice(0, 6).map((item) => (
-                <div
-                  key={item.id}
-                  className="border rounded-2xl p-4 shadow hover:shadow-lg transition text-center"
-                >
-                  <div className="relative w-full h-48 mb-4">
-                    <Image
-                      src={item.fileUrl || "/placeholder-coffee.jpg"}
-                      alt={item.title}
-                      fill
-                      className="object-cover rounded-xl"
-                      unoptimized
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/placeholder-coffee.jpg";
-                      }}
-                    />
-                  </div>
-                  <h3 className="font-semibold text-xl mb-2">{item.title}</h3>
-                  <p className="text-gray-600 mb-2 line-clamp-2">
-                    {item.description}
-                  </p>
-                  <p className="font-bold text-[#6F4E37]">RWF {item.price}</p>
+              {/* Avatar-style image */}
+              <div className="flex justify-center -mt-12 mb-4">
+                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
+                  <Image
+                    src={item.fileUrl || "/placeholder-coffee.jpg"}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-gray-600 text-lg">
-                  No menu items available yet.
-                </p>
-                <p className="text-gray-500 mt-2">
-                  Check back soon for our delicious offerings!
-                </p>
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Content */}
+              <div className="p-5 text-center">
+                <h3 className="font-semibold text-xl text-[#3e2723] mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-lg font-bold text-[#6F4E37] mb-4">
+                  {item.price} RWF
+                </p>
+
+                {/* Order button */}
+                <Link
+                  href={`/user/menu/${item.id}`}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-[#6F4E37] text-white font-medium hover:bg-[#5a3f2c] transition shadow-sm"
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                  Order Now
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );

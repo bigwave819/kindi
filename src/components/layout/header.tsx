@@ -21,25 +21,12 @@ export default function Header() {
     return null;
   }
 
-  if (isPending) {
-    return (
-      <header className="bg-[#3e2723] text-white fixed top-0 left-0 right-0 z-50">
-        <div className="container mx-auto flex items-center justify-between p-4">
-          <Link href="/" className="text-2xl font-bold tracking-wide">
-            Kindi<span className="text-[#ffe0b2]">Coffee</span>
-          </Link>
-          <div className="w-8 h-8 rounded-full bg-gray-600 animate-pulse"></div>
-        </div>
-      </header>
-    );
-  }
-
   return (
-    <header className="bg-[#3e2723] text-white fixed top-0 left-0 right-0 z-50">
+    <header className="top-0 left-0 right-0 z-50">
       <div className="container mx-auto flex items-center justify-between p-4">
         {/* Logo - Left side */}
         <div className="flex-1">
-          <Link href="/" className="text-2xl font-bold tracking-wide inline-block">
+          <Link href="/" className="text-2xl font-bold tracking-wide bg-blur-sm inline-block">
             Kindi<span className="text-[#ffe0b2]">Coffee</span>
           </Link>
         </div>
@@ -51,23 +38,18 @@ export default function Header() {
 
         {/* Right side - User avatar and mobile toggle */}
         <div className="flex-1 flex justify-end items-center gap-4">
-          {/* User Avatar - Desktop */}
           <div className="hidden md:flex items-center gap-6">
-            {/* Cart Link */}
             <Link
               href="/user/cart"
               className="relative flex items-center text-gray-700 hover:text-green-600 transition-colors"
             >
               <ShoppingCart className="w-6 h-6" />
-              {/* Badge for number of items */}
               {totalCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {totalCount}
                 </span>
               )}
             </Link>
-
-            {/* User Menu */}
             <UserAvatarMenu user={session?.user} />
           </div>
 

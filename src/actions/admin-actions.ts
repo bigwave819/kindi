@@ -2,6 +2,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { category, menu, orders, staff, user } from "@/lib/db/schema";
+import { count } from "console";
 import { eq, gte, sql, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -304,15 +305,72 @@ export async function getTopSoldMenuItems() {
 }
 
 export async function getActiveCustomers() {
-  const now = new Date();
-  const last30Days = new Date(now.setDate(now.getDate() - 30));
+    const now = new Date();
+    const last30Days = new Date(now.setDate(now.getDate() - 30));
 
-  const result = await db
-    .select({
-      totalActiveCustomers: sql<number>`COUNT(DISTINCT ${orders.userId})`,
+    const session = await auth.api.getSession({
+        headers: await headers(),
     })
-    .from(orders)
-    .where(gte(orders.createdAt, last30Days));
 
-  return result[0]?.totalActiveCustomers || 0;
+    if (!session?.user || session.user.role !== "admin") {
+        redirect("/")
+    }
+
+    try {
+        const result = await db
+            .select({
+                totalActiveCustomers: sql<number>`COUNT(DISTINCT ${orders.userId})`,
+            })
+            .from(orders)
+            .where(gte(orders.createdAt, last30Days));
+
+        return result[0]?.totalActiveCustomers || 0;
+    } catch (error) {
+        console.error(error);
+        return null
+    }
+}
+
+export async function getSalesByCategory() {
+    try {
+        const result = await db
+            .select({
+                category: category.name,
+                totalSales: sql<number>`SUM(${orders.quantity} * ${orders.price} )`,
+            })
+            .from(orders)
+            .leftJoin(menu, eq(orders.menuId, menu.id))
+            .leftJoin(category, eq(menu.categoryId, category.id))
+            .where(eq(orders.status, 'COMPLETED'))
+            .groupBy(category.name)
+
+        return result
+    } catch (error) {
+        console.error(error);
+        return null
+    }
+}
+
+export async function getOrdersStatusSummary() {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    })
+
+    if (!session?.user || session.user.role !== "admin") {
+        redirect("/")
+    }
+    try {
+        const result = await db
+            .select({
+                status: orders.status,
+                count: sql<number>`COUNT(*)`,
+            })
+            .from(orders)
+            .groupBy(orders.status)
+
+        return result;
+    } catch (error) {
+        console.error(error);
+        return null
+    }
 }

@@ -30,9 +30,7 @@ function DashboardPage() {
                         const Icon = item.Icon
                         return (
                             <div key={item.id} className="bg-white p-6 rounded-lg shadow-md border flex flex-col justify-between border-gray-200">
-                                <div className="p-4 rounded-full bg-amber-50 w-20 h-20 flex justify-center items-center">
                                     <Icon size={34} className="text-primary"/>
-                                </div>
                                 <h1 className="font-bold text-primary text-xl mt-2">{item.title}</h1>
                                 <h1 className="font-bold text-primary text-2xl mt-3">{item.total}</h1>
                             </div>

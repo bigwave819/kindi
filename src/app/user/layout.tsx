@@ -1,27 +1,25 @@
-// app/admin/layout.tsx
-import { AdminSidebar } from "@/components/layout/sidebar";
+// app/user/layout.tsx
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default async function AdminDashboardLayout({ 
-  children, 
-}: { 
+export default async function UserLayout({
+  children,
+}: {
   children: React.ReactNode;
 }) {
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
 
-  if (session?.user.role == 'admin') {
+  // If logged in and is admin → redirect
+  if (session?.user?.role === "admin") {
     redirect("/admin/dashboard");
   }
 
   return (
-      <div>
-        <main>
-          {children}
-        </main>
-      </div>
+    <div>
+      <main>{children}</main>
+    </div>
   );
 }

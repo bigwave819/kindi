@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-client";
+import { useState } from "react";
 
 const links = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -28,13 +29,17 @@ const links = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const route = useRouter()
+  const [ loading, setLoading ] = useState(false)
 
   const handleSignOut = async () => {
     try {
+      setLoading(true)
       await signOut();
       route.push("/")
     } catch (error) {
       console.error("Failed to sign out:", error);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -75,7 +80,7 @@ export function AdminSidebar() {
           className="w-full bg-slate-200 text-black hover:bg-slate-300 justify-between cursor-pointer py-2 text-base font-semibold"
           onClick={handleSignOut}
         >
-          Logout
+          { loading ? 'Loading...' : 'Logout' }
           <LogOut size={18} />
         </Button>
       </div>

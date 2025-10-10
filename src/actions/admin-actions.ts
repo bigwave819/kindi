@@ -110,13 +110,6 @@ export async function createCategoryAction(formData: FormData) {
 
 export async function getAllCategoriesAction() {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers()
-        });
-
-        if (!session?.user || session.user.role !== 'admin') {
-            redirect("/")
-        }
 
         return await db.select().from(category).orderBy(category.name);
     } catch (error) {
@@ -373,4 +366,15 @@ export async function getOrdersStatusSummary() {
         console.error(error);
         return null
     }
+}
+
+export async function getMenusByCategory(categoryId: number) {
+  try {
+    if (isNaN(categoryId)) throw new Error("Invalid category ID");
+
+    return await db.select().from(menu).where(eq(menu.categoryId, categoryId));
+  } catch (error) {
+    console.error("Error fetching menus:", error);
+    return [];
+  }
 }

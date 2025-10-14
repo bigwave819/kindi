@@ -1,4 +1,3 @@
-// components/user/cart/CartContent.tsx
 "use client";
 
 import { ShoppingCart, Trash2, MapPin } from "lucide-react";
@@ -9,25 +8,35 @@ import { LocationModal } from "./LocationModal";
 import { Button } from "@/components/ui/button";
 
 interface CartContentProps {
-  session: any;
+  session: any; // user session
+  dbUser?: any; // full user from db
 }
 
-export default function CartContent({ session }: CartContentProps) {
+export default function CartContent({ session, dbUser }: CartContentProps) {
   const { items, removeFromCart, clearCart } = useCartStore();
   const [showLocationModal, setShowLocationModal] = useState(false);
+
+  // Compute total
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+  // Compute full location from dbUser if exists, else session
+  const userLocation = dbUser
+    ? [dbUser.village, dbUser.cell, dbUser.sector, dbUser.district].filter(Boolean).join(", ")
+    : session?.location;
+
+  const hasLocation = Boolean(userLocation);
 
   const handleCheckout = () => {
     if (!session) {
       alert("You need to log in to checkout!");
       return;
     }
-    if (!session.location) {
+    if (!hasLocation) {
       setShowLocationModal(true);
       return;
     }
     // Proceed with checkout logic here
-    alert(`Proceeding to checkout! Delivery to: ${session.location}`);
+    alert(`Proceeding to checkout! Delivery to: ${userLocation}`);
   };
 
   const handleClearCart = () => {
@@ -59,35 +68,20 @@ export default function CartContent({ session }: CartContentProps) {
           <div className="space-y-6">
             {/* User Status Banner */}
             {session && (
-              <div className={`p-4 rounded-lg ${
-                session.location 
-                  ? "bg-green-50 border border-green-200" 
-                  : "bg-amber-50 border border-amber-200"
-              }`}>
+              <div className={`p-4 rounded-lg ${hasLocation ? "bg-green-50 border border-green-200" : "bg-amber-50 border border-amber-200"}`}>
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${
-                    session.location ? "bg-green-100" : "bg-amber-100"
-                  }`}>
-                    <MapPin className={`w-4 h-4 ${
-                      session.location ? "text-green-600" : "text-amber-600"
-                    }`} />
+                  <div className={`p-2 rounded-full ${hasLocation ? "bg-green-100" : "bg-amber-100"}`}>
+                    <MapPin className={`w-4 h-4 ${hasLocation ? "text-green-600" : "text-amber-600"}`} />
                   </div>
                   <div className="flex-1">
-                    <p className={`font-medium ${
-                      session.location ? "text-green-800" : "text-amber-800"
-                    }`}>
+                    <p className={`font-medium ${hasLocation ? "text-green-800" : "text-amber-800"}`}>
                       {session.name || session.email}
                     </p>
-                    <p className={`text-sm ${
-                      session.location ? "text-green-600" : "text-amber-600"
-                    }`}>
-                      {session.location 
-                        ? `Delivery to: ${session.location}`
-                        : "Delivery location needed"
-                      }
+                    <p className={`text-sm ${hasLocation ? "text-green-600" : "text-amber-600"}`}>
+                      {hasLocation ? `Delivery to: ${userLocation}` : "Delivery location needed"}
                     </p>
                   </div>
-                  {!session.location && (
+                  {!hasLocation && (
                     <Link
                       href="/user/profile"
                       className="bg-amber-500 text-white px-3 py-1 rounded text-sm hover:bg-amber-600 transition-colors"
@@ -107,19 +101,11 @@ export default function CartContent({ session }: CartContentProps) {
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center gap-4">
-                    <img
-                      src={item.fileUrl}
-                      alt={item.title}
-                      className="w-20 h-20 object-cover rounded-lg"
-                    />
+                    <img src={item.fileUrl} alt={item.title} className="w-20 h-20 object-cover rounded-lg" />
                     <div>
                       <h2 className="font-semibold text-lg">{item.title}</h2>
-                      <p className="text-gray-600">
-                        {item.price.toLocaleString()} Frw × {item.quantity}
-                      </p>
-                      <p className="text-green-600 font-medium">
-                        Subtotal: {(item.price * item.quantity).toLocaleString()} Frw
-                      </p>
+                      <p className="text-gray-600">{item.price.toLocaleString()} Frw × {item.quantity}</p>
+                      <p className="text-green-600 font-medium">Subtotal: {(item.price * item.quantity).toLocaleString()} Frw</p>
                     </div>
                   </div>
 
@@ -152,44 +138,18 @@ export default function CartContent({ session }: CartContentProps) {
                 Clear Cart
               </Button>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                {!session ? (
-                  <div className="flex items-center gap-4">
-                    <Button
-                      onClick={handleCheckout}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                    >
-                      Login to Checkout
-                    </Button>
-                    <Link
-                      href="/login"
-                      className="text-blue-600 hover:text-blue-800 underline text-sm"
-                    >
-                      Go to Login
-                    </Link>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={handleCheckout}
-                    className={`${
-                      session.location 
-                        ? "bg-green-500 hover:bg-green-600" 
-                        : "bg-amber-500 hover:bg-amber-600"
-                    } text-white`}
-                  >
-                    {session.location ? "Proceed to Checkout" : "Checkout (Location Required)"}
-                  </Button>
-                )}
-              </div>
+              <Button
+                onClick={handleCheckout}
+                className={`${hasLocation ? "bg-green-500 hover:bg-green-600" : "bg-amber-500 hover:bg-amber-600"} text-white`}
+              >
+                {hasLocation ? "Proceed to Checkout" : "Checkout (Location Required)"}
+              </Button>
             </div>
           </div>
         )}
       </div>
 
-      <LocationModal 
-        open={showLocationModal} 
-        onOpenChange={setShowLocationModal} 
-      />
+      <LocationModal open={showLocationModal} onOpenChange={setShowLocationModal} />
     </>
   );
 }

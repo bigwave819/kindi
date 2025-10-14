@@ -9,14 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { User, Mail, MapPin, Phone, Save, Camera, ArrowLeft } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, Mail, MapPin, Phone, Save, ArrowLeft } from "lucide-react";
+import { updateProfileAction } from "@/actions/user-actions";
+
+// Rwanda districts for dropdown
+const rwandaDistricts = ["Gasabo", "Kicukiro", "Nyarugenge"];
 
 interface ProfileContentProps {
   session: any;
+  dbUser?: any; // Passed from server component
 }
 
-export default function ProfileContent({ session }: ProfileContentProps) {
+export default function ProfileContent({ session, dbUser }: ProfileContentProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -25,22 +30,29 @@ export default function ProfileContent({ session }: ProfileContentProps) {
     name: "",
     email: "",
     phone: "",
-    location: "",
+    district: "",
+    sector: "",
+    cell: "",
+    village: "",
     address: "",
   });
 
-  // Initialize form data from session
+  // Initialize formData from dbUser or session
   useEffect(() => {
-    if (session?.user) {
+    const userSource = dbUser || session?.user;
+    if (userSource) {
       setFormData({
-        name: session.user.name || "",
-        email: session.user.email || "",
-        phone: session.user.phone || "",
-        location: session.user.location || "",
-        address: session.user.address || "",
+        name: userSource.name || "",
+        email: userSource.email || "",
+        phone: userSource.phone || "",
+        district: userSource.district || "",
+        sector: userSource.sector || "",
+        cell: userSource.cell || "",
+        village: userSource.village || "",
+        address: userSource.address || "",
       });
     }
-  }, [session]);
+  }, [dbUser, session]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -52,31 +64,48 @@ export default function ProfileContent({ session }: ProfileContentProps) {
     setIsLoading(true);
 
     try {
-      // Simulate API call to update profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Here you would typically make an API call to update the user profile
-      console.log("Updating profile:", formData);
-      
-      setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 3000);
-      
-      // If location was added and user came from cart, redirect back
-      if (formData.location && document.referrer.includes('/cart')) {
-        router.push('/cart');
+      const result = await updateProfileAction({
+        userId: session?.user?.id,
+        name: formData.name,
+        phone: formData.phone || undefined,
+        district: formData.district || undefined,
+        sector: formData.sector || undefined,
+        cell: formData.cell || undefined,
+        village: formData.village || undefined,
+        address: formData.address || undefined,
+      });
+
+      if (result) {
+        setIsSaved(true);
+        setTimeout(() => setIsSaved(false), 3000);
+        router.refresh();
+
+        if (formData.district && document.referrer.includes('/cart')) {
+          setTimeout(() => router.push('/cart'), 1000);
+        }
+      } else {
+        throw new Error('Failed to update profile');
       }
     } catch (error) {
       console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const getInitials = (name: string, email: string) => {
-    if (name) {
-      return name.split(' ').map(n => n[0]).join('').toUpperCase();
-    }
+    if (name) return name.split(' ').map(n => n[0]).join('').toUpperCase();
     return email ? email[0].toUpperCase() : 'U';
+  };
+
+  const getFullLocation = () => {
+    const parts = [formData.village, formData.cell, formData.sector, formData.district].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : "No location set";
+  };
+
+  const isLocationComplete = () => {
+    return formData.district && formData.sector && formData.cell && formData.village;
   };
 
   if (!session) {
@@ -95,20 +124,15 @@ export default function ProfileContent({ session }: ProfileContentProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 min-h-screen mt-20">
+    <div className="max-w-6xl mx-auto p-6 min-h-screen mt-20">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="h-8 w-8"
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-gray-600">Manage your account information and preferences</p>
+          <p className="text-gray-600">Manage your account information and delivery location</p>
         </div>
       </div>
 
@@ -126,27 +150,28 @@ export default function ProfileContent({ session }: ProfileContentProps) {
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <CardTitle className="text-xl">
-                  {formData.name || "User"}
-                </CardTitle>
+                <CardTitle className="text-xl">{formData.name || "User"}</CardTitle>
                 <CardDescription className="flex items-center justify-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  {formData.email}
+                  <Mail className="h-4 w-4" /> {formData.email}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <MapPin className="h-4 w-4" />
-                  <span>
-                    {formData.location ? `Location: ${formData.location}` : "No location set"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
                   <Phone className="h-4 w-4" />
-                  <span>
-                    {formData.phone || "No phone number"}
-                  </span>
+                  <span>{formData.phone || "No phone number"}</span>
                 </div>
+                <div className="flex items-start gap-3 text-sm text-gray-600">
+                  <MapPin className="h-4 w-4 mt-0.5" />
+                  <span className="flex-1">{getFullLocation()}</span>
+                </div>
+                {!isLocationComplete() && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-amber-800 text-sm font-medium">Location Incomplete</p>
+                    <p className="text-amber-600 text-xs mt-1">
+                      Complete your location details to enable food ordering
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -157,19 +182,13 @@ export default function ProfileContent({ session }: ProfileContentProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href="/user/orders">
-                    Order History
-                  </a>
+                  <a href="/user/orders">Order History</a>
                 </Button>
                 <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href="/cart">
-                    View Cart
-                  </a>
+                  <a href="/cart">View Cart</a>
                 </Button>
                 <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href="/user/menu">
-                    Browse Menu
-                  </a>
+                  <a href="/user/menu">Browse Menu</a>
                 </Button>
               </CardContent>
             </Card>
@@ -184,9 +203,7 @@ export default function ProfileContent({ session }: ProfileContentProps) {
                   <User className="h-5 w-5" />
                   Personal Information
                 </CardTitle>
-                <CardDescription>
-                  Update your personal details and contact information
-                </CardDescription>
+                <CardDescription>Update your personal details and contact information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -207,7 +224,6 @@ export default function ProfileContent({ session }: ProfileContentProps) {
                       value={formData.email}
                       disabled
                       className="bg-gray-50"
-                      placeholder="Your email address"
                     />
                     <p className="text-xs text-gray-500">Email cannot be changed</p>
                   </div>
@@ -231,84 +247,100 @@ export default function ProfileContent({ session }: ProfileContentProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
-                  Delivery Information
+                  Delivery Location Details
                 </CardTitle>
                 <CardDescription>
-                  Set your delivery location and address details
+                  Set your complete delivery location for accurate food delivery
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="location">
-                    Delivery Location/Area
-                    <span className="text-red-500 ml-1">*</span>
-                  </Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    placeholder="e.g., Kigali City, Kimironko, Remera, etc."
-                    required
-                  />
-                  <p className="text-xs text-gray-500">
-                    This is required for food delivery
-                  </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="district">District <span className="text-red-500 ml-1">*</span></Label>
+                    <Select value={formData.district} onValueChange={(v) => handleInputChange('district', v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select District" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rwandaDistricts.map((d) => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sector">Sector <span className="text-red-500 ml-1">*</span></Label>
+                    <Input
+                      id="sector"
+                      value={formData.sector}
+                      onChange={(e) => handleInputChange('sector', e.target.value)}
+                      placeholder="Enter your sector"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="cell">Cell <span className="text-red-500 ml-1">*</span></Label>
+                    <Input
+                      id="cell"
+                      value={formData.cell}
+                      onChange={(e) => handleInputChange('cell', e.target.value)}
+                      placeholder="Enter your cell"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="village">Village <span className="text-red-500 ml-1">*</span></Label>
+                    <Input
+                      id="village"
+                      value={formData.village}
+                      onChange={(e) => handleInputChange('village', e.target.value)}
+                      placeholder="Enter your village"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Detailed Address</Label>
+                  <Label htmlFor="address">Detailed Address (Optional)</Label>
                   <Textarea
                     id="address"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    placeholder="House number, street name, building, landmarks..."
+                    placeholder="House number, street, building, landmarks..."
                     rows={3}
                   />
-                  <p className="text-xs text-gray-500">
-                    Provide specific details for accurate delivery
-                  </p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Save Button */}
             <div className="flex justify-between items-center">
-              <div>
-                {isSaved && (
-                  <p className="text-green-600 text-sm">Profile updated successfully!</p>
-                )}
-              </div>
-              <Button 
-                type="submit" 
-                disabled={isLoading || !formData.location}
-                className="flex items-center gap-2"
-              >
+              <div>{isSaved && <p className="text-green-600 text-sm">Profile updated successfully!</p>}</div>
+              <Button type="submit" disabled={isLoading || !isLocationComplete()} className="flex items-center gap-2">
                 {isLoading ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Saving...
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="h-4 w-4" />
-                    Save Changes
+                    <Save className="h-4 w-4" /> Save Changes
                   </>
                 )}
               </Button>
             </div>
 
-            {/* Location Requirement Notice */}
-            {!formData.location && (
+            {!isLocationComplete() && (
               <Card className="bg-amber-50 border-amber-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-amber-600" />
-                    <div>
-                      <p className="font-medium text-amber-800">Location Required</p>
-                      <p className="text-sm text-amber-600">
-                        Please set your delivery location to enable food ordering
-                      </p>
-                    </div>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-amber-600" />
+                  <div>
+                    <p className="font-medium text-amber-800">Complete Location Required</p>
+                    <p className="text-sm text-amber-600">Please fill in all location fields (District, Sector, Cell, Village) to enable food ordering</p>
                   </div>
                 </CardContent>
               </Card>

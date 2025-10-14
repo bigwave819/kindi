@@ -12,6 +12,12 @@ export const user = pgTable("user", {
     .$defaultFn(() => false)
     .notNull(),
   image: text("image"),
+  phone: text('phone'),
+  district: text('district'),
+  sector: text('sector'),
+  cell: text('cell'),
+  village: text('village'),
+  address: text('address'),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),

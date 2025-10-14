@@ -29,6 +29,13 @@
       "when": 1756401173525,
       "tag": "0003_fast_white_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1760467196129,
+      "tag": "0004_boring_hydra",
+      "breakpoints": true
     }
   ]
 }

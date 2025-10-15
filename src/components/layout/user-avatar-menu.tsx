@@ -47,7 +47,7 @@ export default function UserAvatarMenu({ user }: UserMenuProps) {
         <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+          <Link href="/user/profile" className="flex items-center gap-2 cursor-pointer">
             <UserIcon size={16} /> View Profile
           </Link>
         </DropdownMenuItem>

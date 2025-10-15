@@ -1,0 +1,26 @@
+// file uyite render.yaml nurangiza ushiremo izi content 
+
+services:
+  - type: web
+    name: php-app
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+
+// hanyuma ukore indi file uyite Dockerfile ushyiremo izi content 
+
+# Use an official PHP image
+FROM php:8.2-apache
+
+# Copy project files into the container
+COPY . /var/www/html/
+
+# Expose the port Render expects
+EXPOSE 10000
+
+# Start Apache on Render's expected port
+CMD ["bash", "-c", "apache2-foreground -DFOREGROUND -e info -k start"]
+
+
+nurangiza ukore push kuri github

@@ -120,13 +120,18 @@ export const orders = pgTable('orders', {
   userId: text('user_id')
     .references(() => user.id, { onDelete: 'cascade' })
     .notNull(),
-  menuId: uuid('id')
+  menuId: uuid('menu_id')
     .references(() => menu.id , { onDelete: 'cascade' })
     .notNull(),
   quantity: integer('quantity').notNull(),
   price: integer("price").notNull(),
   total: integer("total").generatedAlwaysAs(sql`quantity * price`),
   status: text('status').default('PENDING').notNull(),
+  orderDate: timestamp('order_date').defaultNow().notNull(),
+  district: text('district'),
+  sector: text('sector'),
+  village: text('village'),
+  address: text('address'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })

@@ -1,45 +1,31 @@
-import { BringToFront, Users, Utensils } from "lucide-react";
+import DashboardClient from "@/components/admin/dashboard/DashboardClient";
 
-function DashboardPage() {
-    const data = [
-        {
-            id: 1,
-            title: 'Total Users',
-            Icon: Users,
-            total: 20
-        },
-        {
-            id: 2,
-            title: 'Total Orders',
-            Icon: BringToFront,
-            total: 30
-        },
-        {
-            id: 3,
-            title: 'Total Menu',
-            Icon: Utensils,
-            total: 9
-        },
-    ]
-    
-    return ( 
-        <div className="w-full min-h-screen flex justify-center p-10">
-            <div className="bg-amber-50 w-full p-7">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {data.map((item) => {
-                        const Icon = item.Icon
-                        return (
-                            <div key={item.id} className="bg-white p-6 rounded-lg shadow-md border flex flex-col justify-between border-gray-200">
-                                    <Icon size={34} className="text-primary"/>
-                                <h1 className="font-bold text-primary text-xl mt-2">{item.title}</h1>
-                                <h1 className="font-bold text-primary text-2xl mt-3">{item.total}</h1>
-                            </div>
-                        )
-                    })}
-                </div>
-            </div>
-        </div>
-    );
+export default function DashboardPage() {
+  // Hard-coded data for the charts
+  const salesByCategory = [
+    { category: "Drinks", totalSales: 120000 },
+    { category: "Food", totalSales: 95000 },
+    { category: "Desserts", totalSales: 70000 },
+    { category: "Snacks", totalSales: 50000 },
+  ];
+
+  const ordersStatus = [
+    { status: "COMPLETED", count: 45 },
+    { status: "PENDING", count: 20 },
+    { status: "CANCELED", count: 5 },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-100">
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">
+          Dashboard Overview
+        </h1>
+        <DashboardClient
+          salesByCategory={salesByCategory}
+          ordersStatus={ordersStatus}
+        />
+      </div>
+    </div>
+  );
 }
-
-export default DashboardPage;

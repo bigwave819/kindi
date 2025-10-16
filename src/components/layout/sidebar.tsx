@@ -10,6 +10,7 @@ import {
   Users,
   UserCog,
   ChartBarStacked ,
+  ChartNoAxesCombined ,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ const links = [
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/staff", label: "Staff", icon: UserCog },
   { href: "/admin/category", label: "Category", icon: ChartBarStacked  },
+  { href: '/admin/analytics', label: 'Analytics', icon: ChartNoAxesCombined  }
 ];
 
 export function AdminSidebar() {

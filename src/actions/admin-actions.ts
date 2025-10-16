@@ -2,7 +2,6 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { category, menu, orders, staff, user } from "@/lib/db/schema";
-import { count } from "console";
 import { eq, gte, sql, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -40,6 +39,38 @@ const staffSchema = z.object({
 })
 
 export type categoryFormValues = z.infer<typeof categorySchema>
+
+
+
+export type TopSoldMenuItem = {
+  title: string | null;
+  image: string | null;
+  totalSold: number;
+};
+
+export type OrdersStatusSummary = {
+  status: string;
+  count: number;
+  totalAmount: number;
+};
+
+export type MenuItem = {
+  id: string;
+  title: string;
+  price: number;
+  categoryId: number | null;
+  description?: string | null;
+  fileUrl?: string | null;
+  thumbnailUrl?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+export type MonthlyIncome = {
+  month: string;
+  totalIncome: number;
+};
+
 
 export async function getAllUsersAction() {
     try {
@@ -238,6 +269,7 @@ export async function createStaffAction(formData: FormData) {
 }
 
 export async function getStaffAction() {
+
     try {
         const session = await auth.api.getSession({
             headers: await headers()
@@ -264,117 +296,152 @@ export async function getStaffAction() {
     }
 }
 
-export async function getTopSoldMenuItems() {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+export async function getTopSoldMenuItems(): Promise<TopSoldMenuItem[]> {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    })
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-    if (!session?.user || session.user.role !== "admin") {
-        redirect("/")
-    }
+  if (!session?.user || session.user.role !== "admin") {
+    redirect("/");
+  }
 
-    try {
-        const result = await db
-            .select({
-                title: menu.title,
-                image: menu.fileUrl,
-                totalSold: sql<number>`SUM(${orders.quantity})`
-            })
-            .from(orders)
-            .leftJoin(menu, eq(orders.menuId, menu.id))
-            .where(and(gte(orders.createdAt, startOfMonth), eq(orders.status, "COMPLETED")))
-            .groupBy(menu.title, menu.fileUrl)
-            .orderBy(desc(sql`SUM(${orders.quantity})`))
-            .limit(5);
+  try {
+    const result = await db
+      .select({
+        title: menu.title,
+        image: menu.fileUrl,
+        totalSold: sql<number>`SUM(${orders.quantity})`,
+      })
+      .from(orders)
+      .leftJoin(menu, eq(orders.menuId, menu.id))
+      .where(and(
+        gte(orders.createdAt, startOfMonth),
+        eq(orders.status, "COMPLETED")
+      ))
+      .groupBy(menu.title, menu.fileUrl)
+      .orderBy(desc(sql`SUM(${orders.quantity})`))
+      .limit(5);
 
-        return result
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+    return result;
+  } catch (error) {
+    console.error("getTopSoldMenuItems error:", error);
+    return [];
+  }
 }
 
-export async function getActiveCustomers() {
-    const now = new Date();
-    const last30Days = new Date(now.setDate(now.getDate() - 30));
+export async function getOrdersStatusSummary(): Promise<OrdersStatusSummary[]> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    })
+  if (!session?.user || session.user.role !== "admin") {
+    redirect("/");
+  }
 
-    if (!session?.user || session.user.role !== "admin") {
-        redirect("/")
-    }
+  try {
+    const result = await db
+      .select({
+        status: orders.status,
+        count: sql<number>`COUNT(*)`,
+        totalAmount: sql<number>`SUM(${orders.quantity} * ${orders.price})`,
+      })
+      .from(orders)
+      .groupBy(orders.status);
 
-    try {
-        const result = await db
-            .select({
-                totalActiveCustomers: sql<number>`COUNT(DISTINCT ${orders.userId})`,
-            })
-            .from(orders)
-            .where(gte(orders.createdAt, last30Days));
+      console.log(result + 'hello');
 
-        return result[0]?.totalActiveCustomers || 0;
-    } catch (error) {
-        console.error(error);
-        return null
-    }
+    return result;
+    
+  } catch (error) {
+    console.error("getOrdersStatusSummary error:", error);
+    return [];
+  }
 }
 
-export async function getSalesByCategory() {
-    try {
-        const result = await db
-            .select({
-                category: category.name,
-                totalSales: sql<number>`SUM(${orders.quantity} * ${orders.price} )`,
-            })
-            .from(orders)
-            .leftJoin(menu, eq(orders.menuId, menu.id))
-            .leftJoin(category, eq(menu.categoryId, category.id))
-            .where(eq(orders.status, 'COMPLETED'))
-            .groupBy(category.name)
+export async function getMenusByCategory(categoryId: number): Promise<MenuItem[]> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-        return result
-    } catch (error) {
-        console.error(error);
-        return null
-    }
-}
+  if (!session?.user || session.user.role !== "admin") {
+    redirect("/");
+  }
 
-export async function getOrdersStatusSummary() {
-    const session = await auth.api.getSession({
-        headers: await headers(),
-    })
-
-    if (!session?.user || session.user.role !== "admin") {
-        redirect("/")
-    }
-    try {
-        const result = await db
-            .select({
-                status: orders.status,
-                count: sql<number>`COUNT(*)`,
-            })
-            .from(orders)
-            .groupBy(orders.status)
-
-        return result;
-    } catch (error) {
-        console.error(error);
-        return null
-    }
-}
-
-export async function getMenusByCategory(categoryId: number) {
   try {
     if (isNaN(categoryId)) throw new Error("Invalid category ID");
 
-    return await db.select().from(menu).where(eq(menu.categoryId, categoryId));
+    const result = await db
+      .select()
+      .from(menu)
+      .where(eq(menu.categoryId, categoryId));
+
+    return result as MenuItem[];
   } catch (error) {
-    console.error("Error fetching menus:", error);
+    console.error("getMenusByCategory error:", error);
     return [];
+  }
+}
+
+export async function getIncomeLast4Months(): Promise<MonthlyIncome[]> {
+  const now = new Date();
+  const fourMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== "admin") {
+    redirect("/");
+  }
+
+  try {
+    const result = await db
+      .select({
+        month: sql<string>`TO_CHAR(${orders.createdAt}, 'YYYY-MM')`,
+        totalIncome: sql<number>`SUM(${orders.quantity} * ${orders.price})`,
+      })
+      .from(orders)
+      .where(and(
+        gte(orders.createdAt, fourMonthsAgo),
+        eq(orders.status, "COMPLETED")
+      ))
+      .groupBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM')`)
+      .orderBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM')`);
+
+    return result;
+  } catch (error) {
+    console.error("getIncomeLast4Months error:", error);
+    return [];
+  }
+}
+
+export async function updateOrder(
+  id: string,
+  status: "COMPLETED" | "CANCELED" | 'PENDING'
+) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== "admin") {
+    redirect("/");
+  }
+
+  try {
+    await db
+      .update(orders)
+      .set({ status })
+      .where(sql`${orders.id} = ${id}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "Failed to update order: " + error,
+    };
   }
 }

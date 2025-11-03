@@ -2,6 +2,9 @@
 import { fetchOrders } from "@/actions/user-actions";
 import OrderCard from "@/components/admin/order/orderCard";
 
+
+export const dynamic = "force-dynamic";
+
 export default async function OrdersPage() {
   const { success, orders, message } = await fetchOrders();
 

@@ -40,15 +40,19 @@ export default function AnalyticsPage() {
 
   if (loading) return <div className="p-6 text-center">Loading analytics data...</div>;
 
-  const totalOrders = orderStatusData.reduce((sum, item) => sum + item.count, 0);
-  const completedRevenue = orderStatusData.filter(item => item.status === 'COMPLETED')
+  const completedOrdersCount = orderStatusData
+    .filter(item => item.status === 'COMPLETED')
+    .reduce((sum, item) => sum + item.count, 0);
+
+  const cancelledOrdersCount = orderStatusData
+    .filter(item => item.status === 'CANCELLED' || item.status === 'CANCELED')
+    .reduce((sum, item) => sum + item.count, 0);
+
+  const completedRevenue = orderStatusData
+    .filter(item => item.status === 'COMPLETED')
     .reduce((sum, item) => sum + item.totalAmount, 0);
-  const totalItemsSold = topSoldItems.reduce((sum, item) => sum + item.totalSold, 0);
-  const monthlyGrowth = monthlyIncomeData.length >= 2
-    ? ((monthlyIncomeData[monthlyIncomeData.length - 1].totalIncome
-        - monthlyIncomeData[monthlyIncomeData.length - 2].totalIncome)
-        / monthlyIncomeData[monthlyIncomeData.length - 2].totalIncome) * 100
-    : 0;
+
+
 
   return (
     <div className="p-6 space-y-6">
@@ -61,11 +65,11 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <OrderStatusSummary data={orderStatusData} />
+
         <QuickStatsCard
-          totalOrders={totalOrders}
           completedRevenue={completedRevenue}
-          totalItemsSold={totalItemsSold}
-          monthlyGrowth={monthlyGrowth}
+          completedOrdersCount={completedOrdersCount}
+          cancelledOrdersCount={cancelledOrdersCount}
         />
       </div>
     </div>

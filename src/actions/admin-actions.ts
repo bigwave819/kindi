@@ -141,7 +141,6 @@ export async function createCategoryAction(formData: FormData) {
 
 export async function getAllCategoriesAction() {
     try {
-
         return await db.select().from(category).orderBy(category.name);
     } catch (error) {
         console.error(error);
@@ -344,22 +343,24 @@ export async function getOrdersStatusSummary(): Promise<OrdersStatusSummary[]> {
   try {
     const result = await db
       .select({
-        status: orders.status,
+        status: sql<string>`UPPER(${orders.status})`.as("status"),
         count: sql<number>`COUNT(*)`,
         totalAmount: sql<number>`SUM(${orders.quantity} * ${orders.price})`,
       })
       .from(orders)
       .groupBy(orders.status);
 
-      console.log(result + 'hello');
-
-    return result;
-    
+    return result.map((row) => ({
+      status: row.status,
+      count: Number(row.count),
+      totalAmount: Number(row.totalAmount),
+    }));
   } catch (error) {
     console.error("getOrdersStatusSummary error:", error);
     return [];
   }
 }
+
 
 export async function getMenusByCategory(categoryId: number): Promise<MenuItem[]> {
   const session = await auth.api.getSession({

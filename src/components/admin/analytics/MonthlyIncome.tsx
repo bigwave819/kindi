@@ -24,9 +24,9 @@ export default function MonthlyIncomeChart({ data }: Props) {
                   const date = new Date(value + '-01');
                   return date.toLocaleDateString('en-US', { month: 'short' });
                 }} />
-                <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
+                <YAxis tickFormatter={(value) => `Frw ${value.toLocaleString()}`} />
                 <Tooltip
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, "Income"]}
+                  formatter={(value: number) => [`Frw ${value.toLocaleString()}`, "Income"]}
                   labelFormatter={(label) => {
                     const date = new Date(label + '-01');
                     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });

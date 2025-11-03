@@ -1,13 +1,12 @@
-// ✅ No "use client" here
 import { getSingleMenuAction } from "@/actions/user-actions";
 import Image from "next/image";
 import MenuDetails from "@/components/user/MenuDetails";
 
-type OrderPageProps = {
-  params: { slug: string };
-};
-
-export default async function OrderPage({ params }: OrderPageProps) {
+export default async function OrderPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}) {
   const { slug } = await params;
   const result = await getSingleMenuAction(slug);
 

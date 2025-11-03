@@ -20,6 +20,7 @@ export default function UserAvatarMenu({ user }: UserMenuProps) {
   const handleSignOut = async () => {
     try {
       await signOut();
+      window.location.href='/';
     } catch (error) {
       console.error("Failed to sign out:", error);
     }

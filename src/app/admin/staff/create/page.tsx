@@ -1,9 +1,7 @@
 import CreateStaff from "@/components/admin/staff/create-staff";
 
 function StaffAddPage() {
-    return ( 
-        <CreateStaff />
-     );
+    return <CreateStaff />
 }
 
 export default StaffAddPage;

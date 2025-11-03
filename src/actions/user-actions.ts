@@ -108,15 +108,11 @@ export async function createOrder(items: any[]) {
 
 export async function fetchOrders() {
   try {
-    console.log("🔍 Starting fetchOrders...");
-
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
-    if (!session?.user) {
-      throw new Error("User is not logged in.");
-    }
+    if (!session?.user) throw new Error("User not logged in.");
 
     const currentUserId = session.user.id;
 
@@ -124,19 +120,10 @@ export async function fetchOrders() {
       where: eq(user.id, currentUserId),
     });
 
-    if (!dbUser) {
-      throw new Error("User not found in database.");
-    }
+    if (!dbUser) throw new Error("User not found.");
 
     const isAdmin = dbUser.role === "admin";
-    let whereCondition = undefined;
-    if (!isAdmin) {
-      whereCondition = eq(orders.userId, currentUserId);
-    } else {
-      console.log("🔍 Admin: No user filter applied");
-    }
 
-    // Fetch orders
     const fetchedOrders = await db
       .select({
         id: orders.id,
@@ -157,64 +144,19 @@ export async function fetchOrders() {
       })
       .from(orders)
       .leftJoin(menu, eq(menu.id, orders.menuId))
-      .where(whereCondition);
-    console.log("🔄 Grouping orders...");
-    const groupedOrders = fetchedOrders.reduce((acc: any, item) => {
-      const orderId = item.id;
-
-      if (!acc[orderId]) {
-        console.log(`🆕 Creating new order group: ${orderId}`);
-        acc[orderId] = {
-          id: orderId,
-          date: item.orderDate,
-          status: item.status,
-          address: `${item.district || ''}, ${item.sector || ''}, ${item.village || ''}, ${item.address || ''}`.replace(/, ,/g, ',').replace(/,\s*$/, ''),
-          items: [],
-          total: 0,
-        };
-      }
-      if (item.menu && item.menu.id) {
-        acc[orderId].items.push({
-          id: item.menu.id,
-          name: item.menu.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.menu.image,
-        });
-
-        // Calculate total
-        const itemTotal = item.price * item.quantity;
-        acc[orderId].total += itemTotal;
-      } else {
-        console.log(`⚠️ Skipping invalid menu item for order ${orderId}`);
-      }
-
-      return acc;
-    }, {});
-
-    const ordersArray = Object.values(groupedOrders);
+      .where(isAdmin ? undefined : eq(orders.userId, currentUserId));
 
     return {
       success: true,
-      orders: ordersArray,
-      debug: {
-        isAdmin,
-        userId: currentUserId,
-        rawItemsCount: fetchedOrders.length,
-        groupedOrdersCount: ordersArray.length
-      }
+      orders: fetchedOrders,
+      message: ""
     };
   } catch (error: any) {
     console.error("❌ Error in fetchOrders:", error);
     return {
       success: false,
       orders: [],
-      message: error.message || "Failed to fetch orders.",
-      debug: {
-        error: error.message,
-        stack: error.stack
-      }
+      message: error.message || "Failed to fetch orders."
     };
   }
 }
-

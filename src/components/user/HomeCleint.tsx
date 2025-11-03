@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 
-
 type MenuItem = {
   id: string;
   title: string;
@@ -17,7 +16,6 @@ type MenuItem = {
 
 export default function HomeClient({ session }: { session: any }) {
   const [menu, setMenu] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const content = [
@@ -41,38 +39,17 @@ export default function HomeClient({ session }: { session: any }) {
   useEffect(() => {
     async function fetchMenu() {
       try {
-        setLoading(true);
         setError(null);
         const data = await getMenuAction();
         setMenu(data);
       } catch (err) {
         setError("Failed to load menu. Please try again.");
-      } finally {
-        setLoading(false);
       }
     }
     fetchMenu();
   }, []);
 
-  if (!menu?.length)
-    return (
-      <div className="text-center py-20 text-gray-600">
-        <p className="text-lg">No menu items available yet.</p>
-        <p className="text-gray-500 mt-2">
-          Check back soon for our delicious offerings!
-        </p>
-      </div>
-    );
-
-  if (loading)
-    return (
-      <div className="text-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6F4E37] mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading menu...</p>
-      </div>
-    );
-
-  if (error)
+  if (error) {
     return (
       <div className="text-center py-20 text-red-600">
         <p>{error}</p>
@@ -84,10 +61,11 @@ export default function HomeClient({ session }: { session: any }) {
         </button>
       </div>
     );
+  }
 
   return (
     <div>
-      {/* Hero Section */}
+      {/* Hero Section - Always show this */}
       <section className="flex flex-col md:flex-row items-center justify-between min-h-screen max-w-7xl mx-auto px-6 py-12">
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-wide leading-tight">
@@ -119,7 +97,7 @@ export default function HomeClient({ session }: { session: any }) {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Features - Always show this */}
       <section className="py-20 bg-[#f8f4f1]">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-4xl font-bold text-center mb-16 text-[#3e2723]">
@@ -144,52 +122,61 @@ export default function HomeClient({ session }: { session: any }) {
         </div>
       </section>
 
-      {/* Menu Section */}
+      {/* Menu Section - Only show empty state for this section */}
       <section className="py-20 max-w-6xl mx-auto px-6">
         <h2 className="text-4xl font-bold text-center mb-12 text-[#3e2723]">
           Our Menu
         </h2>
 
-        <div className="grid gap-16 sm:grid-cols-2 md:grid-cols-3">
-          {menu.slice(0, 6).map((item: any) => (
-            <div
-              key={item.id}
-              className="rounded-2xl border shadow-md hover:shadow-xl transition bg-white"
-            >
-              {/* Avatar-style image */}
-              <div className="flex justify-center -mt-12 mb-4">
-                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
-                  <Image
-                    src={item.fileUrl || "/placeholder-coffee.jpg"}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
+        {!menu?.length ? (
+          <div className="text-center py-12 text-gray-600">
+            <p className="text-lg">No menu items available yet.</p>
+            <p className="text-gray-500 mt-2">
+              Check back soon for our delicious offerings!
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-16 sm:grid-cols-2 md:grid-cols-3">
+            {menu.slice(0, 6).map((item: any) => (
+              <div
+                key={item.id}
+                className="rounded-2xl border shadow-md hover:shadow-xl transition bg-white"
+              >
+                {/* Avatar-style image */}
+                <div className="flex justify-center -mt-12 mb-4">
+                  <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
+                    <Image
+                      src={item.fileUrl || "/placeholder-coffee.jpg"}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-5 text-center">
+                  <h3 className="font-semibold text-xl text-[#3e2723] mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-lg font-bold text-[#6F4E37] mb-4">
+                    {item.price} RWF
+                  </p>
+
+                  {/* Order button */}
+                  <Link
+                    href={`/user/menu/${item.id}`}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-[#6F4E37] text-white font-medium hover:bg-[#5a3f2c] transition shadow-sm"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    Order Now
+                  </Link>
                 </div>
               </div>
-
-              {/* Content */}
-              <div className="p-5 text-center">
-                <h3 className="font-semibold text-xl text-[#3e2723] mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-lg font-bold text-[#6F4E37] mb-4">
-                  {item.price} RWF
-                </p>
-
-                {/* Order button */}
-                <Link
-                  href={`/user/menu/${item.id}`}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-[#6F4E37] text-white font-medium hover:bg-[#5a3f2c] transition shadow-sm"
-                >
-                  <ShoppingBag className="w-5 h-5" />
-                  Order Now
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

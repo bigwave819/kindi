@@ -22,11 +22,14 @@ export default async function AdminDashboardLayout({
   }
 
   return (
-      <div className="flex">
-        <AdminSidebar />
-        <main className="ml-64 flex-1 p-6 bg-[#fdfdfc] min-w-0 justify-end overflow-auto">
-          {children}
-        </main>
-      </div>
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <AdminSidebar />
+
+      {/* Main content */}
+      <main className="flex-1 p-6 bg-[#fdfdfc] min-w-0 overflow-auto md:ml-64">
+        {children}
+      </main>
+    </div>
   );
 }

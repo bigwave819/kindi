@@ -9,7 +9,7 @@ const userRole = "user";
 
 export const auth = betterAuth({
     appName: "Kindi Coffee Shop",
-    baseURL: process.env.BASE_URL || 'http://localhost:3000', // Added fallback
+    baseURL: process.env.BASE_URL || 'https://kindicoffeeshop.vercel.app', // Added fallback
     secret: process.env.BETTER_AUTH_SECRET!,
     emailAndPassword: {
         enabled: true,
